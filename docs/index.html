@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gphotos-fixer — Google Photos Takeout Organizer</title>
+    <meta
+      name="description"
+      content="A reliable Python tool that rescues your Google Photos Takeout export — handles every broken JSON naming variant."
+    />
+    <meta name="author" content="Nazımcan İslam" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #f7f6f3;
+        --bg-card: #ffffff;
+        --fg: #1a1a18;
+        --fg-muted: #6b6b66;
+        --accent: #2d6a4f;
+        --accent-lt: #d8f3dc;
+        --border: #e2e0da;
+        --code-bg: #f0ede6;
+        --radius: 6px;
+        --mono: "SF Mono", "Cascadia Code", "Fira Mono", "Consolas", monospace;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141412;
+          --bg-card: #1e1e1b;
+          --fg: #edecea;
+          --fg-muted: #8a8a82;
+          --accent: #74c69d;
+          --accent-lt: #1b3a2d;
+          --border: #2c2c28;
+          --code-bg: #252520;
+        }
+      }
+
+      html {
+        font-size: 16px;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Layout ── */
+      .container {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ── Header ── */
+      header {
+        padding: 72px 0 56px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-family: var(--mono);
+        color: var(--accent);
+        background: var(--accent-lt);
+        border-radius: 99px;
+        padding: 3px 10px;
+        margin-bottom: 20px;
+        letter-spacing: 0.04em;
+      }
+
+      .badge::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        margin-bottom: 16px;
+      }
+
+      h1 span {
+        color: var(--accent);
+      }
+
+      .tagline {
+        font-size: 1.1rem;
+        color: var(--fg-muted);
+        max-width: 520px;
+        margin-bottom: 32px;
+      }
+
+      .cta-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: opacity 0.15s;
+      }
+      .btn:hover {
+        opacity: 0.8;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+      }
+      @media (prefers-color-scheme: dark) {
+        .btn-primary {
+          color: #141412;
+        }
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--fg);
+        border: 1px solid var(--border);
+      }
+
+      /* ── Sections ── */
+      section {
+        padding: 56px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      section:last-of-type {
+        border-bottom: none;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-bottom: 24px;
+      }
+
+      /* ── Problem / Solution callout ── */
+      .callout {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        color: var(--fg-muted);
+        font-size: 0.95rem;
+        margin-bottom: 24px;
+      }
+      .callout strong {
+        color: var(--fg);
+      }
+
+      /* ── Feature grid ── */
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .feature {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+      }
+
+      .feature-icon {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .feature h3 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .feature p {
+        font-size: 0.82rem;
+        color: var(--fg-muted);
+        line-height: 1.5;
+      }
+
+      /* ── Code blocks ── */
+      .code-block {
+        display: flex;
+        flex-direction: column;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        font-family: var(--mono);
+        font-size: 0.83rem;
+        line-height: 1.7;
+        overflow-x: auto;
+        margin-bottom: 16px;
+      }
+
+      .code-block .comment {
+        color: var(--fg-muted);
+      }
+      .code-block .cmd {
+        color: var(--accent);
+      }
+
+      /* ── Output structure ── */
+      .tree {
+        display: flex;
+        flex-direction: column;
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        line-height: 1.8;
+        color: var(--fg-muted);
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+      }
+      .tree .hi {
+        color: var(--fg);
+      }
+      .tree .acc {
+        color: var(--accent);
+      }
+
+      /* ── Stats strip ── */
+      .stats {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+
+      .stat-item {
+        text-align: left;
+      }
+
+      .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        color: var(--accent);
+        line-height: 1;
+      }
+
+      .stat-label {
+        font-size: 0.78rem;
+        color: var(--fg-muted);
+        margin-top: 4px;
+      }
+
+      /* ── Footer ── */
+      footer {
+        padding: 40px 0;
+        font-size: 0.82rem;
+        color: var(--fg-muted);
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      footer a {
+        color: var(--fg-muted);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      footer a:hover {
+        color: var(--fg);
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 520px) {
+        header {
+          padding: 48px 0 40px;
+        }
+        .stats {
+          gap: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ── Header ── -->
+      <header>
+        <div class="badge">v0.1.0 · MIT · Python 3.10+</div>
+        <h1>gphotos<span>-fixer</span></h1>
+        <p class="tagline">
+          Rescue your Google Photos Takeout export. Handles every broken JSON
+          naming variant, Windows path limit, and timestamp corruption others
+          miss.
+        </p>
+        <div class="cta-row">
+          <a
+            class="btn btn-primary"
+            href="https://github.com/nazimcanislam/gphotos-fixer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.031 1.531 1.031.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"
+              />
+            </svg>
+            View on GitHub
+          </a>
+          <a
+            class="btn btn-secondary"
+            href="https://github.com/nazimcanislam/gphotos-fixer/archive/refs/heads/main.zip"
+          >
+            ↓ Download ZIP
+          </a>
+        </div>
+      </header>
+
+      <!-- ── Problem ── -->
+      <section>
+        <h2>The problem</h2>
+        <div class="callout">
+          <strong>Google Takeout exports are a mess.</strong> JSON sidecar files
+          get their names truncated at random lengths. Windows MAX_PATH silently
+          breaks <code>glob()</code>. Duplicate photo copies share a single
+          metadata file. Timestamps end up as today's date. Most tools fail
+          silently on these edge cases — or refuse to start at all.
+        </div>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value">12 089</div>
+            <div class="stat-label">files in the test export</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">99.99%</div>
+            <div class="stat-label">successfully dated &amp; organized</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">6</div>
+            <div class="stat-label">JSON matching strategies</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Features ── -->
+      <section>
+        <h2>What it handles</h2>
+        <div class="features">
+          <div class="feature">
+            <span class="feature-icon">🗂</span>
+            <h3>Date-based structure</h3>
+            <p>
+              Organizes files into <code>YYYY/MM/</code> folders with correct
+              modification times.
+            </p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📁</span>
+            <h3>Album preservation</h3>
+            <p>
+              Keeps album folders intact under <code>albums/</code> without
+              flattening your library.
+            </p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🔍</span>
+            <h3>Broken JSON names</h3>
+            <p>
+              Matches <code>.suppl.json</code>, <code>.supplemen.json</code>,
+              <code>.supplemental-met.json</code>, and more — including
+              Windows-truncated paths.
+            </p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🪞</span>
+            <h3>Duplicate detection</h3>
+            <p>
+              MD5 hash check skips identical files and renames conflicting ones
+              instead of overwriting.
+            </p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🏷</span>
+            <h3>3-tier date fallback</h3>
+            <p>
+              JSON → EXIF (via Pillow) → filename pattern. If all fail, the file
+              lands in <code>unknown_date/</code>.
+            </p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🔬</span>
+            <h3>Dry-run mode</h3>
+            <p>
+              Preview exactly what would be copied before committing — no disk
+              writes, no surprises.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Usage ── -->
+      <section>
+        <h2>Usage</h2>
+
+        <p
+          style="color: var(--fg-muted); font-size: 0.9rem; margin-bottom: 16px"
+        >
+          Requires Python 3.10+. Install <code>Pillow</code> for EXIF support
+          (optional but recommended).
+        </p>
+
+        <div class="code-block">
+          <span class="comment"># Clone and install</span>
+          <span
+            ><span class="cmd">git clone</span>
+            https://github.com/nazimcanislam/gphotos-fixer.git</span
+          >
+          <span><span class="cmd">cd</span> gphotos-fixer</span>
+          <span><span class="cmd">pip install</span> Pillow</span>
+        </div>
+
+        <div class="code-block">
+          <span class="comment"># Interactive mode</span>
+          <span><span class="cmd">python -m</span> gphotos_fixer</span>
+
+          <span class="comment"># Non-interactive</span>
+          <span
+            ><span class="cmd">python -m</span> gphotos_fixer --input
+            "/path/to/Takeout/Google Photos" --output
+            "/path/to/Photos_Organized"</span
+          >
+
+          <span class="comment"># Dry run — no files written</span>
+          <span
+            ><span class="cmd">python -m</span> gphotos_fixer --input ...
+            --output ... <span class="cmd">--dry-run</span></span
+          >
+        </div>
+      </section>
+
+      <!-- ── Output structure ── -->
+      <section>
+        <h2>Output structure</h2>
+        <div class="tree">
+          <span class="hi">Photos_Organized/</span>
+          <div>
+            ├── <span class="acc">2022/</span>
+            <span style="opacity: 0.4">← YYYY/MM/</span>
+          </div>
+          <div>│ &nbsp;&nbsp;├── 06/ &nbsp;</div>
+          <div>│ &nbsp;&nbsp;└── 11/</div>
+          <div>├── <span class="acc">2023/</span></div>
+          <div>├── <span class="acc">albums/</span></div>
+          <div>
+            <div>│ &nbsp;&nbsp;├── Cats 🐱/</div>
+            <div>│ &nbsp;&nbsp;└── Summer Trip/</div>
+          </div>
+          <div>
+            ├── unknown_date/
+            <span style="opacity: 0.4">← no recoverable date</span>
+          </div>
+          <div>
+            └── suspicious_date/ &nbsp;<span style="opacity: 0.4"
+              >← future timestamp</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Also ── -->
+      <section>
+        <h2>Also by the author</h2>
+        <div class="callout" style="border-left-color: var(--fg-muted)">
+          Once your Takeout is organized, you might want to compress it.
+          <strong
+            ><a
+              href="https://github.com/nazimcanislam/shrinkify"
+              style="color: var(--fg)"
+              >Shrinkify</a
+            ></strong
+          >
+          deduplicates and compresses your media library using
+          hardware-accelerated encoding. The two tools pair naturally:
+          gphotos-fixer organizes, Shrinkify cleans up.
+        </div>
+      </section>
+
+      <!-- ── Footer ── -->
+      <footer>
+        <span>
+          Built by
+          <a href="https://github.com/nazimcanislam">Nazımcan İslam</a> in
+          collaboration with <a href="https://claude.ai">Claude</a> (Anthropic)
+          ·
+          <a
+            href="https://github.com/nazimcanislam/gphotos-fixer/blob/main/LICENSE"
+            >MIT License</a
+          >
+        </span>
+        <a href="https://github.com/nazimcanislam/gphotos-fixer">GitHub →</a>
+      </footer>
+    </div>
+  </body>
+</html>
