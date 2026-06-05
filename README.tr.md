@@ -41,7 +41,7 @@ Google Takeout dışa aktarmaları bir kaos: tutarsız JSON sidecar isimleri, Wi
 ## Kurulum
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/gphotos-fixer.git
+git clone https://github.com/nazimcanislam/gphotos-fixer.git
 cd gphotos-fixer
 pip install Pillow   # opsiyonel ama önerilir
 ```
@@ -138,7 +138,7 @@ Google Takeout fotoğraflarınızı kurtardınıza göre, şimdi sıkıştırmak
 
 ## Claude ile yapıldı
 
-Bu proje, [Nazımcan İslam](https://github.com/YOUR_USERNAME) ile [Claude](https://claude.ai) (Anthropic'in yapay zeka asistanı) arasındaki gerçek bir iş birliğiyle oluşturuldu.
+Bu proje, [Nazımcan İslam](https://github.com/nazimcanislam) ile [Claude](https://claude.ai) (Anthropic'in yapay zeka asistanı) arasındaki gerçek bir iş birliğiyle oluşturuldu.
 
 Geliştirme süreci gerçek anlamda iteratifti: 12.000'den fazla dosyalık gerçek bir Takeout arşivi başından sonuna test vakası olarak kullanıldı. Kesik JSON adları, Windows yol limitleri, kopya numaralandırma, bozuk timestamp'ler — her sorun gerçek çıktıdan teşhis edildi ve anında düzeltildi. Ortaya çıkan araç, varsayılan sorunlara değil gerçek sorunlara göre şekillendi.
 

@@ -41,7 +41,7 @@ Google Takeout exports are a mess: inconsistently named JSON sidecars, truncated
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/gphotos-fixer.git
+git clone https://github.com/nazimcanislam/gphotos-fixer.git
 cd gphotos-fixer
 pip install Pillow   # optional but recommended
 ```
@@ -144,7 +144,7 @@ The workflow pairs naturally: `gphotos-fixer` organizes your Takeout, Shrinkify 
 
 ## Made with Claude
 
-This project was built collaboratively between [Nazımcan İslam](https://github.com/YOUR_USERNAME) and [Claude](https://claude.ai) (Anthropic's AI assistant).
+This project was built collaboratively between [Nazımcan İslam](https://github.com/nazimcanislam) and [Claude](https://claude.ai) (Anthropic's AI assistant).
 
 The development process was genuinely iterative: a real 12,000+ file Takeout export was used as the test case throughout. Each failure — truncated JSON names, Windows path limits, duplicate copy numbering, corrupt timestamps — was diagnosed from actual output and fixed in real time. The result is a tool shaped by real-world problems rather than assumed ones.
 
