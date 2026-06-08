@@ -45,6 +45,7 @@ class Stats(NamedTuple):
     renamed:    int = 0
     no_date:    int = 0
     suspicious: int = 0
+    errors:     int = 0
 
     def __add__(self, other: "Stats") -> "Stats":
         return Stats(
@@ -53,15 +54,20 @@ class Stats(NamedTuple):
             self.renamed    + other.renamed,
             self.no_date    + other.no_date,
             self.suspicious + other.suspicious,
+            self.errors     + other.errors,
         )
 
 
-def _md5(path: Path, chunk: int = 65536) -> str:
-    h = hashlib.md5()
-    with open(path, "rb") as f:
-        while data := f.read(chunk):
-            h.update(data)
-    return h.hexdigest()
+def _md5(path: Path, chunk: int = 65536) -> str | None:
+    """Return the MD5 hex digest of *path*, or None if the file is unreadable."""
+    try:
+        h = hashlib.md5()
+        with open(path, "rb") as f:
+            while data := f.read(chunk):
+                h.update(data)
+        return h.hexdigest()
+    except (PermissionError, OSError):
+        return None
 
 
 def _set_mtime(path: Path, dt: datetime) -> None:
@@ -77,7 +83,7 @@ def _safe_copy(src: Path, dst: Path, dt: datetime | None, dry_run: bool) -> str:
     """
     Copy *src* to *dst* and optionally fix the modification timestamp.
 
-    Returns one of: 'copied', 'skipped', 'renamed'.
+    Returns one of: 'copied', 'skipped', 'renamed', 'error'.
 
     If *dst* already exists:
     - same MD5  → skip (no copy)
@@ -85,6 +91,9 @@ def _safe_copy(src: Path, dst: Path, dt: datetime | None, dry_run: bool) -> str:
 
     When *dry_run* is True no files are written and the function always
     returns 'copied' (simulating what would happen).
+
+    If the source file is unreadable (corrupted, locked, permission denied),
+    the function returns 'error' and prints a warning — it never raises.
     """
     if dry_run:
         return "copied"
@@ -92,19 +101,34 @@ def _safe_copy(src: Path, dst: Path, dt: datetime | None, dry_run: bool) -> str:
     dst.parent.mkdir(parents=True, exist_ok=True)
 
     if dst.exists():
-        if _md5(src) == _md5(dst):
+        src_hash = _md5(src)
+        dst_hash = _md5(dst)
+        # If src is unreadable, treat as error; if dst is unreadable, skip the
+        # equality check and fall through to rename (safer than silently skipping).
+        if src_hash is None:
+            print(f"  ✗ skipped (unreadable): {src.name}", flush=True)
+            return "error"
+        if src_hash == dst_hash:
             return "skipped"
         stem, suffix = dst.stem, dst.suffix
         i = 1
         while dst.exists():
             dst = dst.parent / f"{stem}_{i}{suffix}"
             i += 1
-        shutil.copy2(src, dst)
+        try:
+            shutil.copy2(src, dst)
+        except (PermissionError, OSError) as e:
+            print(f"  ✗ skipped (unreadable): {src.name} — {e}", flush=True)
+            return "error"
         if dt:
             _set_mtime(dst, dt)
         return "renamed"
 
-    shutil.copy2(src, dst)
+    try:
+        shutil.copy2(src, dst)
+    except (PermissionError, OSError) as e:
+        print(f"  ✗ skipped (unreadable): {src.name} — {e}", flush=True)
+        return "error"
     if dt:
         _set_mtime(dst, dt)
     return "copied"
@@ -185,7 +209,7 @@ def process_folder(
     """
     current_year = datetime.now().year
     counters = {"copied": 0, "skipped": 0, "renamed": 0,
-                "no_date": 0, "suspicious": 0}
+                "no_date": 0, "suspicious": 0, "errors": 0}
 
     for photo in src_folder.rglob("*"):
         if not photo.is_file():
@@ -203,13 +227,19 @@ def process_folder(
         elif category == "suspicious":
             counters["suspicious"] += 1
 
-        counters[result] += 1
+        if result == "error":
+            counters["errors"] += 1
+        else:
+            counters[result] += 1
 
         if verbose:
-            symbol = {"copied": "✓", "skipped": "=", "renamed": "~"}.get(result, "?")
+            symbol = {"copied": "✓", "skipped": "=", "renamed": "~", "error": "✗"}.get(result, "?")
             tag = {"no_date": " [no date]", "suspicious": " [suspicious date]"}.get(
                 category, ""
             )
-            print(f"  {symbol} {photo.name}{tag}", flush=True)
+            # Error lines are already printed inside _safe_copy with full detail;
+            # skip reprinting them here to avoid duplication.
+            if result != "error":
+                print(f"  {symbol} {photo.name}{tag}", flush=True)
 
     return Stats(**counters)

@@ -31,7 +31,8 @@ def _print_banner() -> None:
 
 def _print_summary(stats: Stats, source_count: int, dry_run: bool) -> None:
     output_count = stats.copied + stats.renamed
-    missing = source_count - output_count - stats.skipped
+    missing = source_count - output_count - stats.skipped - stats.errors
+
     dry_tag = "  [DRY RUN — no files were written]\n" if dry_run else ""
 
     print("\n" + "=" * 62)
@@ -43,6 +44,9 @@ def _print_summary(stats: Stats, source_count: int, dry_run: bool) -> None:
     print(f"  ~  Renamed (conflict) : {stats.renamed}")
     print(f"  ?  No date found      : {stats.no_date}  → unknown_date/")
     print(f"  ⚠  Suspicious date    : {stats.suspicious}  → suspicious_date/")
+
+    if stats.errors > 0:
+        print(f"  ✗  Read errors        : {stats.errors}  (corrupted or locked files — skipped)")
 
     if missing > 0:
         print(f"\n  ❌ MISSING: {missing} file(s) may not have been transferred!")
