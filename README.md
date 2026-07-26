@@ -38,6 +38,33 @@ Google Takeout exports are a mess: inconsistently named JSON sidecars, truncated
 
 ---
 
+## New to Python? No problem
+
+You don't need any programming experience to use this tool. Just follow these steps:
+
+1. **Install Python** — download it from [python.org](https://www.python.org/downloads/). During installation, make sure to check **"Add Python to PATH"**.
+2. **Download this project** — click the green **Code** button above → **Download ZIP**, then extract it somewhere on your computer.
+3. **Open a terminal**:
+   - Windows: search for `cmd` or `PowerShell` in the Start menu
+   - macOS: open the `Terminal` app
+4. **Navigate to the extracted folder**, e.g.:
+
+```bash
+cd Downloads/gphotos-fixer-main
+```
+
+5. **Run the tool**:
+
+```bash
+python -m gphotos_fixer
+```
+
+6. It will ask you for your Takeout input folder and an output folder — just paste the paths and press Enter.
+
+That's it — no coding required. If you get stuck, feel free to [open an issue](https://github.com/nazimcanislam/gphotos-fixer/issues).
+
+---
+
 ## Installation
 
 ```bash

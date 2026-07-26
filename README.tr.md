@@ -38,6 +38,33 @@ Google Takeout dışa aktarmaları bir kaos: tutarsız JSON sidecar isimleri, Wi
 
 ---
 
+## Python bilmiyor musunuz? Sorun değil
+
+Bu aracı kullanmak için programlama bilgisine ihtiyacınız yok. Şu adımları takip etmeniz yeterli:
+
+1. **Python'ı kurun** — [python.org](https://www.python.org/downloads/) adresinden indirin. Kurulum sırasında **"Add Python to PATH"** kutucuğunu işaretlemeyi unutmayın.
+2. **Bu projeyi indirin** — yukarıdaki yeşil **Code** butonuna tıklayın → **Download ZIP**, sonra bilgisayarınızda bir yere çıkarın.
+3. **Bir terminal açın**:
+   - Windows: Başlat menüsünde `cmd` veya `PowerShell` arayın
+   - macOS: `Terminal` uygulamasını açın
+4. **Çıkardığınız klasöre gidin**, örneğin:
+
+```bash
+cd Downloads/gphotos-fixer-main
+```
+
+5. **Aracı çalıştırın**:
+
+```bash
+python -m gphotos_fixer
+```
+
+6. Sizden Takeout giriş klasörünü ve bir çıkış klasörü isteyecek — yolları yapıştırıp Enter'a basmanız yeterli.
+
+Hepsi bu kadar — kod yazmanıza gerek yok. Takılırsanız [issue açmaktan](https://github.com/nazimcanislam/gphotos-fixer/issues) çekinmeyin.
+
+---
+
 ## Kurulum
 
 ```bash
