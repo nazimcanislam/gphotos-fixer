@@ -31,12 +31,28 @@ MEDIA_EXTENSIONS: frozenset[str] = frozenset({
     # Videos
     ".mp4", ".mov", ".avi", ".mkv", ".wmv",
     ".m4v", ".3gp", ".mts",
+    # Motion Photo video components (Pixel/Android "Motion Photo" .jpg+.mp pairs).
+    # Google Takeout sometimes ships these with a conflict suffix (.mp~2) or as
+    # a separate .cover thumbnail. Previously unhandled -> silently dropped.
+    ".mp", ".mp~2", ".cover",
 })
 
 # Folder names to skip entirely (case-insensitive).
 _SKIP_FOLDERS: frozenset[str] = frozenset({"çöp kutusu", "trash", "bin"})
 
-_YEAR_FOLDER_RE = re.compile(r"photos?\s+from\s+(\d{4})", re.IGNORECASE)
+# Google Takeout localizes the "Photos from YYYY" folder name to the
+# language the Google account was set to when the export was made. Each
+# pattern must capture the 4-digit year in group 1.
+_YEAR_FOLDER_PATTERNS: tuple[re.Pattern, ...] = (
+    re.compile(r"^photos?\s+from\s+(\d{4})$", re.IGNORECASE),                    # English
+    re.compile(r"^(\d{4})\s*y[ıi]l[ıi]na\s+ait\s+fotoğraflar$", re.IGNORECASE),  # Turkish
+    re.compile(r"^fotos?\s+(?:de|von|from)\s+(\d{4})$", re.IGNORECASE),          # es/pt/de fallback
+    # Last resort: a folder name that's just the bare year, nothing else
+    # (older Takeout exports and some locales use this).
+    re.compile(r"^(\d{4})$"),
+)
+
+_NOT_SEEN = object()  # sentinel: "no destination seen yet" vs "seen but unreadable (hash=None)"
 
 
 class Stats(NamedTuple):
@@ -79,7 +95,13 @@ def _set_mtime(path: Path, dt: datetime) -> None:
         pass
 
 
-def _safe_copy(src: Path, dst: Path, dt: datetime | None, dry_run: bool) -> str:
+def _safe_copy(
+    src: Path,
+    dst: Path,
+    dt: datetime | None,
+    dry_run: bool,
+    virtual_seen: dict[Path, str | None] | None = None,
+) -> str:
     """
     Copy *src* to *dst* and optionally fix the modification timestamp.
 
@@ -89,13 +111,44 @@ def _safe_copy(src: Path, dst: Path, dt: datetime | None, dry_run: bool) -> str:
     - same MD5  → skip (no copy)
     - different → append _1, _2 … until the name is free, then copy
 
-    When *dry_run* is True no files are written and the function always
-    returns 'copied' (simulating what would happen).
+    When *dry_run* is True no files are written to disk, but duplicate/
+    conflict detection is still simulated via *virtual_seen* — a dict
+    shared across the whole run that tracks which destination paths
+    "would" exist and with which MD5, so dry-run stats match a real run.
+    Without *virtual_seen*, dry-run falls back to the old (inaccurate)
+    behaviour of always reporting 'copied'.
 
     If the source file is unreadable (corrupted, locked, permission denied),
     the function returns 'error' and prints a warning — it never raises.
     """
     if dry_run:
+        if virtual_seen is None:
+            return "copied"
+
+        existing_hash: str | None
+        if dst.exists():
+            existing_hash = _md5(dst)
+        elif dst in virtual_seen:
+            existing_hash = virtual_seen[dst]
+        else:
+            existing_hash = _NOT_SEEN  # type: ignore[assignment]
+
+        if existing_hash is not _NOT_SEEN:
+            src_hash = _md5(src)
+            if src_hash is None:
+                return "error"
+            if src_hash == existing_hash:
+                return "skipped"
+            stem, suffix = dst.stem, dst.suffix
+            i = 1
+            candidate = dst
+            while candidate.exists() or candidate in virtual_seen:
+                candidate = dst.parent / f"{stem}_{i}{suffix}"
+                i += 1
+            virtual_seen[candidate] = src_hash
+            return "renamed"
+
+        virtual_seen[dst] = _md5(src)
         return "copied"
 
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -179,9 +232,14 @@ def classify_folders(
             continue
         if folder.name.lower() in _SKIP_FOLDERS:
             continue
-        m = _YEAR_FOLDER_RE.match(folder.name)
-        if m:
-            year_folders[int(m.group(1))] = folder
+        year = None
+        for pattern in _YEAR_FOLDER_PATTERNS:
+            m = pattern.match(folder.name.strip())
+            if m:
+                year = int(m.group(1))
+                break
+        if year is not None:
+            year_folders[year] = folder
         else:
             album_folders.append(folder)
 
@@ -195,17 +253,21 @@ def process_folder(
     album: str | None = None,
     dry_run: bool = False,
     verbose: bool = True,
+    virtual_seen: dict[Path, str | None] | None = None,
 ) -> Stats:
     """
     Process all media files under *src_folder*.
 
     Parameters
     ----------
-    src_folder : source directory to scan recursively
-    dst_root   : root of the output directory
-    album      : if set, place files under albums/<album>/
-    dry_run    : simulate without writing any files
-    verbose    : print a line per file
+    src_folder   : source directory to scan recursively
+    dst_root     : root of the output directory
+    album        : if set, place files under albums/<album>/
+    dry_run      : simulate without writing any files
+    verbose      : print a line per file
+    virtual_seen : shared dict (pass the SAME dict across every call in a
+                   dry-run) used to simulate duplicate/conflict detection
+                   without touching disk. Ignored when dry_run is False.
     """
     current_year = datetime.now().year
     counters = {"copied": 0, "skipped": 0, "renamed": 0,
@@ -220,7 +282,7 @@ def process_folder(
         dt = date_resolver.resolve(photo)
         dst, category = _destination(photo, dst_root, album, current_year)
 
-        result = _safe_copy(photo, dst, dt, dry_run)
+        result = _safe_copy(photo, dst, dt, dry_run, virtual_seen)
 
         if category == "no_date":
             counters["no_date"] += 1

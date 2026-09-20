@@ -156,7 +156,35 @@ Examples:
     print(f"   Found {source_count} media file(s).\n")
 
     year_folders, album_folders = classify_folders(input_dir)
+
+    # Guard against pointing --input at the Takeout root (or any folder one
+    # level above where it should be) instead of the "Google Photos" folder
+    # itself. In that case classify_folders finds zero "Photos from YYYY"
+    # folders and silently treats the *entire* export as one giant album,
+    # flattening all year/album structure into albums/<that folder's name>/.
+    if not year_folders:
+        nested_hit = None
+        for folder in album_folders:
+            nested_year, _ = classify_folders(folder)
+            if nested_year:
+                nested_hit = folder
+                break
+        print("\n❌ No \"Photos from YYYY\" folders found directly inside the input folder.")
+        if nested_hit:
+            print(f"   It looks like '{nested_hit.name}/' inside your input folder is")
+            print("   the actual 'Google Photos' folder from your Takeout export.")
+            print(f"   Try again with --input pointing to: {nested_hit}")
+        else:
+            print("   Make sure --input points to the 'Google Photos' folder found")
+            print("   inside your extracted Takeout export, not the Takeout root,")
+            print("   a zip file, or an album folder within it.")
+        sys.exit(1)
+
     total = Stats()
+    # Shared across every process_folder call so dry-run duplicate/conflict
+    # detection matches what a real run would produce, even across
+    # different year/album folders.
+    virtual_seen: dict = {} if args.dry_run else None
 
     # Process year folders
     print(f"── Year folders ({len(year_folders)}) ──────────────────────────────────")
@@ -166,6 +194,7 @@ Examples:
             folder, output_dir,
             dry_run=args.dry_run,
             verbose=not args.quiet,
+            virtual_seen=virtual_seen,
         )
         total = total + s
 
@@ -178,6 +207,7 @@ Examples:
             album=folder.name,
             dry_run=args.dry_run,
             verbose=not args.quiet,
+            virtual_seen=virtual_seen,
         )
         total = total + s
 
