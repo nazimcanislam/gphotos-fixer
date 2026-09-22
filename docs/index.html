@@ -424,6 +424,15 @@
               writes, no surprises.
             </p>
           </div>
+          <div class="feature">
+            <span class="feature-icon">📦</span>
+            <h3>Flat mode</h3>
+            <p>
+              <code>--flat</code> fixes dates in any photo folder, not just a
+              Takeout export — handy after an SD card transfer scrambles your
+              timestamps.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -463,6 +472,12 @@
           <span
             ><span class="cmd">python -m</span> gphotos_fixer --input ...
             --output ... <span class="cmd">--dry-run</span></span
+          >
+
+          <span class="comment"># Flat mode — not a Takeout export, just a photo folder</span>
+          <span
+            ><span class="cmd">python -m</span> gphotos_fixer --input ...
+            --output ... <span class="cmd">--flat</span></span
           >
         </div>
       </section>

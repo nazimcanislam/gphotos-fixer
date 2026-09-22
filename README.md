@@ -28,6 +28,7 @@ Google Takeout exports are a mess: inconsistently named JSON sidecars, truncated
 - **Source/output count verification** — warns you if files are missing from the output
 - **Optional EXIF fallback** — reads `DateTimeOriginal` via Pillow when JSON is absent
 - **Filename pattern fallback** — extracts dates from patterns like `IMG_20230615_143000`
+- **Flat mode (`--flat`)** — fix dates in *any* folder of photos/videos, not just a Takeout export. Useful when a file transfer (SD card, cloud sync, etc.) reset your timestamps but left EXIF data intact
 
 ---
 
@@ -35,33 +36,6 @@ Google Takeout exports are a mess: inconsistently named JSON sidecars, truncated
 
 - Python 3.10+
 - `Pillow` *(optional)* — enables EXIF date reading
-
----
-
-## New to Python? No problem
-
-You don't need any programming experience to use this tool. Just follow these steps:
-
-1. **Install Python** — download it from [python.org](https://www.python.org/downloads/). During installation, make sure to check **"Add Python to PATH"**.
-2. **Download this project** — click the green **Code** button above → **Download ZIP**, then extract it somewhere on your computer.
-3. **Open a terminal**:
-   - Windows: search for `cmd` or `PowerShell` in the Start menu
-   - macOS: open the `Terminal` app
-4. **Navigate to the extracted folder**, e.g.:
-
-```bash
-cd Downloads/gphotos-fixer-main
-```
-
-5. **Run the tool**:
-
-```bash
-python -m gphotos_fixer
-```
-
-6. It will ask you for your Takeout input folder and an output folder — just paste the paths and press Enter.
-
-That's it — no coding required. If you get stuck, feel free to [open an issue](https://github.com/nazimcanislam/gphotos-fixer/issues).
 
 ---
 
@@ -102,13 +76,25 @@ python -m gphotos_fixer \
   --dry-run
 ```
 
+### Flat mode — fixing a plain folder of photos (not a Takeout export)
+
+If your photos didn't come from Takeout but got their dates scrambled some other way (e.g. moving files from phone storage to an SD card via the Google Files app), `--flat` skips the year/album folder detection entirely and just organizes recursively by whatever date it can resolve from EXIF or the filename:
+
+```bash
+python -m gphotos_fixer \
+  --input  "/path/to/messed_up_photos" \
+  --output "/path/to/fixed" \
+  --flat --dry-run
+```
+
 ### All flags
 
 | Flag | Short | Description |
 |------|-------|-------------|
-| `--input DIR` | `-i` | Google Photos folder from your Takeout export |
+| `--input DIR` | `-i` | Google Photos folder from your Takeout export (or any photo folder in `--flat` mode) |
 | `--output DIR` | `-o` | Destination folder |
 | `--dry-run` | | Simulate without writing files |
+| `--flat` | | Treat `--input` as a plain photo folder instead of a Takeout export |
 | `--quiet` | `-q` | Only show the summary, suppress per-file output |
 | `--version` | | Print version and exit |
 | `--help` | `-h` | Show help |

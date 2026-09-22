@@ -28,6 +28,7 @@ Google Takeout dışa aktarmaları bir kaos: tutarsız JSON sidecar isimleri, Wi
 - **Kaynak/çıktı sayısı doğrulama** — eksik dosya varsa uyarır
 - **Opsiyonel EXIF fallback** — JSON yoksa Pillow aracılığıyla `DateTimeOriginal` okur
 - **Dosya adı pattern fallback** — `IMG_20230615_143000`, `2023-06-15`, `1702044110343` gibi kalıplardan tarih çıkarır
+- **Düz klasör modu (`--flat`)** — sadece Takeout arşivleri değil, *herhangi bir* fotoğraf/video klasöründeki tarihleri düzeltir. SD karta taşıma, bulut senkronizasyonu gibi işlemler dosya tarihini bozduğunda ama EXIF verisi sağlam kaldığında işe yarar
 
 ---
 
@@ -35,33 +36,6 @@ Google Takeout dışa aktarmaları bir kaos: tutarsız JSON sidecar isimleri, Wi
 
 - Python 3.10+
 - `Pillow` *(opsiyonel)* — EXIF tarih okuma için
-
----
-
-## Python bilmiyor musunuz? Sorun değil
-
-Bu aracı kullanmak için programlama bilgisine ihtiyacınız yok. Şu adımları takip etmeniz yeterli:
-
-1. **Python'ı kurun** — [python.org](https://www.python.org/downloads/) adresinden indirin. Kurulum sırasında **"Add Python to PATH"** kutucuğunu işaretlemeyi unutmayın.
-2. **Bu projeyi indirin** — yukarıdaki yeşil **Code** butonuna tıklayın → **Download ZIP**, sonra bilgisayarınızda bir yere çıkarın.
-3. **Bir terminal açın**:
-   - Windows: Başlat menüsünde `cmd` veya `PowerShell` arayın
-   - macOS: `Terminal` uygulamasını açın
-4. **Çıkardığınız klasöre gidin**, örneğin:
-
-```bash
-cd Downloads/gphotos-fixer-main
-```
-
-5. **Aracı çalıştırın**:
-
-```bash
-python -m gphotos_fixer
-```
-
-6. Sizden Takeout giriş klasörünü ve bir çıkış klasörü isteyecek — yolları yapıştırıp Enter'a basmanız yeterli.
-
-Hepsi bu kadar — kod yazmanıza gerek yok. Takılırsanız [issue açmaktan](https://github.com/nazimcanislam/gphotos-fixer/issues) çekinmeyin.
 
 ---
 
@@ -102,13 +76,25 @@ python -m gphotos_fixer \
   --dry-run
 ```
 
+### Düz klasör modu — Takeout dışı bir fotoğraf klasörünü düzeltmek
+
+Fotoğraflarınız Takeout'tan gelmiyor ama tarihleri başka bir şekilde bozulduysa (ör. Google Files uygulamasıyla telefon hafızasından SD karta taşırken), `--flat` yıl/albüm klasörü tespitini tamamen atlar ve EXIF veya dosya adından çözebildiği tarihe göre klasörleri özyinelemeli olarak düzenler:
+
+```bash
+python -m gphotos_fixer \
+  --input  "/path/to/bozuk_fotograflar" \
+  --output "/path/to/duzeltilmis" \
+  --flat --dry-run
+```
+
 ### Tüm parametreler
 
 | Parametre | Kısa | Açıklama |
 |-----------|------|----------|
-| `--input DIR` | `-i` | Takeout arşivindeki Google Fotoğraflar klasörü |
+| `--input DIR` | `-i` | Takeout arşivindeki Google Fotoğraflar klasörü (`--flat` modunda herhangi bir fotoğraf klasörü) |
 | `--output DIR` | `-o` | Hedef klasör |
 | `--dry-run` | | Dosya yazmadan simüle et |
+| `--flat` | | `--input`'u Takeout arşivi yerine düz bir fotoğraf klasörü olarak ele al |
 | `--quiet` | `-q` | Sadece özeti göster, dosya bazlı çıktıyı gizle |
 | `--version` | | Sürümü yazdır ve çık |
 | `--help` | `-h` | Yardımı göster |

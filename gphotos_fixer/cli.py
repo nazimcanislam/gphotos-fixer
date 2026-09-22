@@ -108,6 +108,9 @@ Examples:
 
   # Dry run (no files written)
   python -m gphotos_fixer --input ~/Takeout/Google\\ Photos --output ~/Photos --dry-run
+
+  # Fix dates in a plain folder of photos (not a Takeout export)
+  python -m gphotos_fixer --input ~/sdcard_photos --output ~/fixed --flat
 """,
     )
     parser.add_argument(
@@ -121,6 +124,17 @@ Examples:
     parser.add_argument(
         "--dry-run", action="store_true",
         help="Scan and report without copying any files.",
+    )
+    parser.add_argument(
+        "--flat", action="store_true",
+        help=(
+            "Treat --input as a plain folder of photos/videos (NOT a Takeout "
+            "export) — no 'Photos from YYYY' / album structure expected. "
+            "Every file is recursively scanned and organized purely by the "
+            "date resolved from its EXIF data (or filename pattern as a "
+            "fallback). Useful for fixing dates corrupted by moving files "
+            "between phone storage and an SD card, cloud sync tools, etc."
+        ),
     )
     parser.add_argument(
         "--quiet", "-q", action="store_true",
@@ -154,6 +168,18 @@ Examples:
     print("\n🔍 Scanning source folder…")
     source_count = count_media(input_dir)
     print(f"   Found {source_count} media file(s).\n")
+
+    if args.flat:
+        virtual_seen: dict = {} if args.dry_run else None
+        print("── Flat mode: organizing purely by resolved EXIF/filename date ──")
+        total = process_folder(
+            input_dir, output_dir,
+            dry_run=args.dry_run,
+            verbose=not args.quiet,
+            virtual_seen=virtual_seen,
+        )
+        _print_summary(total, source_count, dry_run=args.dry_run)
+        return
 
     year_folders, album_folders = classify_folders(input_dir)
 
