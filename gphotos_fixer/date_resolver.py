@@ -5,8 +5,9 @@ Resolves the original capture date of a media file.
 
 Priority order:
   1. Google Takeout companion JSON  (most reliable)
-  2. EXIF metadata                  (requires Pillow)
-  3. Filename pattern matching      (best-effort fallback)
+  2. EXIF metadata                  (requires Pillow; images only)
+  3. Video container metadata       (MP4/MOV/M4V/3GP 'mvhd' box; no dependency)
+  4. Filename pattern matching      (best-effort fallback)
 """
 
 import json
@@ -71,6 +72,100 @@ def from_exif(photo_path: Path) -> datetime | None:
     return None
 
 
+# ISO Base Media File Format family (MP4, MOV, M4V, 3GP) all share the same
+# box/atom structure, so a single hand-rolled parser covers all of them
+# without any external dependency (no ffprobe/mutagen required).
+_ISO_BMFF_VIDEO_EXTENSIONS = frozenset({".mp4", ".mov", ".m4v", ".3gp"})
+
+# QuickTime/ISO-BMFF timestamps are seconds since 1904-01-01 UTC.
+# Offset to convert to the Unix epoch (1970-01-01 UTC).
+_QT_EPOCH_OFFSET = 2082844800
+
+
+def from_video_metadata(video_path: Path) -> datetime | None:
+    """
+    Read the creation time embedded in an MP4/MOV/M4V/3GP container's
+    'mvhd' box (inside 'moov'). This is the camera/recording app's own
+    timestamp, independent of EXIF (which Pillow can't read from video
+    files at all) and independent of the filename.
+
+    Returns None — never raises — if the box isn't found, the file isn't
+    a recognized ISO-BMFF container, or the embedded timestamp is zero
+    (many recording apps never set it).
+    """
+    if video_path.suffix.lower() not in _ISO_BMFF_VIDEO_EXTENSIONS:
+        return None
+    try:
+        with open(video_path, "rb") as f:
+            moov_end = None
+            # Walk top-level boxes looking for 'moov'.
+            while True:
+                header = f.read(8)
+                if len(header) < 8:
+                    return None
+                size = int.from_bytes(header[0:4], "big")
+                box_type = header[4:8]
+                if size == 1:
+                    largesize = f.read(8)
+                    if len(largesize) < 8:
+                        return None
+                    size = int.from_bytes(largesize, "big")
+                    header_len = 16
+                elif size == 0:
+                    size = None  # extends to EOF
+                    header_len = 8
+                else:
+                    header_len = 8
+
+                if not box_type.isalnum():
+                    return None  # not a real box stream, bail out safely
+
+                if box_type == b"moov":
+                    moov_end = f.tell() + (size - header_len if size else -1)
+                    break
+
+                if size is None:
+                    return None  # moov never found before EOF-extending box
+                f.seek(f.tell() + (size - header_len))
+
+            # Now inside 'moov'; find the direct child 'mvhd' box.
+            while moov_end is None or f.tell() < moov_end:
+                header = f.read(8)
+                if len(header) < 8:
+                    return None
+                size = int.from_bytes(header[0:4], "big")
+                box_type = header[4:8]
+                if size < 8 or not box_type.isalnum():
+                    return None
+
+                if box_type == b"mvhd":
+                    version = f.read(1)
+                    if not version:
+                        return None
+                    f.read(3)  # flags
+                    if version == b"\x00":
+                        creation = f.read(4)
+                        if len(creation) < 4:
+                            return None
+                        creation_time = int.from_bytes(creation, "big")
+                    else:
+                        creation = f.read(8)
+                        if len(creation) < 8:
+                            return None
+                        creation_time = int.from_bytes(creation, "big")
+                    if not creation_time:
+                        return None  # never set by the recording app
+                    unix_ts = creation_time - _QT_EPOCH_OFFSET
+                    if unix_ts <= 0:
+                        return None
+                    return datetime.fromtimestamp(unix_ts, tz=timezone.utc)
+
+                f.seek(f.tell() + (size - 8))
+    except Exception:
+        return None
+    return None
+
+
 def from_filename(filename: str) -> datetime | None:
     """Guess a date from common timestamp patterns embedded in filenames."""
     for pattern in _FILENAME_PATTERNS:
@@ -108,6 +203,10 @@ def resolve(photo_path: Path) -> datetime | None:
             return dt
 
     dt = from_exif(photo_path)
+    if dt:
+        return dt
+
+    dt = from_video_metadata(photo_path)
     if dt:
         return dt
 
