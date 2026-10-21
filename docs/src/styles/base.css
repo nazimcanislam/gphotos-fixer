@@ -61,7 +61,7 @@ code {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(border);
+  background: var(--border);
   border-radius: 8px;
 }
 
