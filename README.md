@@ -29,6 +29,7 @@ Google Takeout exports are a mess: inconsistently named JSON sidecars, truncated
 - **Optional EXIF fallback** — reads `DateTimeOriginal` via Pillow when JSON is absent
 - **Filename pattern fallback** — extracts dates from patterns like `IMG_20230615_143000`
 - **Flat mode (`--flat`)** — fix dates in *any* folder of photos/videos, not just a Takeout export. Useful when a file transfer (SD card, cloud sync, etc.) reset your timestamps but left EXIF data intact
+- **Cross-platform** — gphotos-fixer is a CLI program that can run on Windows, macOS and Linux.
 
 ---
 
@@ -152,6 +153,15 @@ If you just rescued your photos from Google Takeout, you might want to compress 
 **[Shrinkify](https://github.com/nazimcanislam/shrinkify)** is a desktop app (built by the same author) that deduplicates and compresses your media library — videos, images, and more — using hardware-accelerated encoding when available.
 
 The workflow pairs naturally: `gphotos-fixer` organizes your Takeout, Shrinkify cleans up the result.
+
+---
+
+## Update Version
+
+Versions are written in a Python file and docs. Change them in:
+
+- In `gphotos-fixer/__init__.py` file change `__version__` variable like `X.X.X`
+- In `docs/src/data/schema.json` file change `softwareVersion` key like `X.X.X`
 
 ---
 

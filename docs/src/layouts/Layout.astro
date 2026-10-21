@@ -1,0 +1,81 @@
+---
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import schemaData from "../data/schema.json";
+import "../styles/base.css";
+
+const title = "gphotos-fixer — Google Photos Takeout Organizer";
+const description =
+  "Rescue your Google Photos Takeout export — handles every broken JSON naming variant Python can find.";
+---
+
+<!doctype html>
+<html lang="en" style="color-scheme: dark light;">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+
+    <!-- SEO tags -->
+    <meta name="generator" content={Astro.generator} />
+    <meta name="author" content="Nazımcan İslam" />
+    <meta name="description" content={description} />
+    <meta name="canonical" content={Astro.site} />
+
+    <!-- OG Tags -->
+    <meta property="og:title" content={title} />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content={Astro.site + "/gphotos-fixer-og-image.jpg"}
+    />
+    <meta
+      property="og:image:alt"
+      content="Image the definition and the way photos-fixer works"
+    />
+    <meta property="og:url" content={Astro.site} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="gphotos-fixer" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Favicon  -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/assets/favicon_io/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/assets/favicon_io/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/assets/favicon_io/favicon-16x16.png"
+    />
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest" />
+
+    <!-- Structred Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(schemaData)} />
+
+    <!-- Theme color -->
+    <meta name="theme-color" content="#2d6a4f" />
+    <meta
+      name="theme-color"
+      content="#74c69d"
+      media="(prefers-color-scheme: dark)"
+    />
+  </head>
+  <body>
+    <a href="#main" class="skip">Skip to content</a>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

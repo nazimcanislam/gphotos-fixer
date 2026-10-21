@@ -1,0 +1,95 @@
+<style>
+  .features-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .feature {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+
+  .feature-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .feature-desc {
+    font-size: 1rem;
+    color: var(--fg-muted);
+  }
+</style>
+
+<section class="section-wrap features" id="features">
+  <h2 class="section-title">Features</h2>
+
+  <div class="features-wrap">
+    <div class="feature">
+      <div class="feature-title">🗂 Date-based structure</div>
+      <div class="feature-desc">
+        Organizes files into YYYY/MM/ folders with correct modification times.
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">📁 Album preservation</div>
+      <div class="feature-desc">
+        Keeps album folders intact under <code>albums/</code> without flattening your
+        library.
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">🔍 Broken JSON names</div>
+      <div class="feature-desc">
+        Matches <code>.suppl.json</code>, <code>.supplemen.json</code>, <code>.supplemental-met.json</code>, and more —
+        including Windows-truncated paths.
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">🪞 Duplicate detection</div>
+      <div class="feature-desc">
+        <strong>MD5</strong> hash check skips identical files and renames conflicting ones
+        instead of overwriting.
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">🏷 3-tier date fallback</div>
+      <div class="feature-desc">
+        JSON → EXIF (via Pillow) → filename pattern. If all fail, the file lands
+        in <code>unknown_date/</code>.
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">🔬 Dry-run mode</div>
+      <div class="feature-desc">
+        Preview exactly what would be copied before committing — no disk writes,
+        no surprises.
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">📦 Flat mode</div>
+      <div class="feature-desc">
+        <code>--flat</code> fixes dates in any photo folder, not just a Takeout export —
+        handy after an SD card transfer scrambles your timestamps.
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-title">💻 Cross-platform</div>
+      <div class="feature-desc">
+        <strong>gphotos-fixer</strong> is a CLI program that can run on Windows, macOS and Linux.
+      </div>
+    </div>
+  </div>
+</section>

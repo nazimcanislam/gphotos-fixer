@@ -1,0 +1,87 @@
+<style>
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero .hero-badges {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-family: var(--mono);
+    margin-top: 0;
+    margin-bottom: 32px;
+  }
+
+  .hero p {
+    color: var(--fg-muted);
+    margin-top: 0;
+    margin-bottom: 32px;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+</style>
+
+<section class="section-wrap hero">
+  <div class="badge">v0.3.0 · MIT · Python 3.10+</div>
+
+  <div class="hero-badges">
+    <!-- Stars -->
+    <a
+      href="https://github.com/nazimcanislam/gphotos-fixer/stargazers"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img
+        src="https://img.shields.io/github/stars/nazimcanislam/gphotos-fixer?style=flat&logo=github&color=yellow"
+        alt="GitHub Stars"
+        height="20"
+      />
+    </a>
+
+    <!-- Forks -->
+    <a
+      href="https://github.com/nazimcanislam/gphotos-fixer/network/members"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img
+        src="https://img.shields.io/github/forks/nazimcanislam/gphotos-fixer?style=flat&logo=git&logoColor=white&color=blue"
+        alt="GitHub Forks"
+        height="20"
+      />
+    </a>
+  </div>
+
+  <h1>gphotos<span style="color: var(--accent);">-fixer</span></h1>
+  <p class="lead">
+    Rescue your Google Photos Takeout export. Handles every broken JSON naming
+    variant, Windows path limit, and timestamp corruption others miss.
+  </p>
+  <div class="hero-cta">
+    <a
+      href="https://github.com/nazimcanislam/gphotos-fixer"
+      rel="noopener noreferrer"
+      target="_blank"
+      class="btn btn-primary">View on GitHub ↗</a
+    >
+    <a
+      href="https://github.com/nazimcanislam/gphotos-fixer/archive/refs/heads/main.zip"
+      class="btn btn-secondary">↓ Download ZIP</a
+    >
+  </div>
+</section>

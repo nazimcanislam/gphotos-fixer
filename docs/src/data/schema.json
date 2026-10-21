@@ -1,0 +1,32 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "gphotos-fixer",
+  "alternateName": "Google Photos Takeout Organizer",
+  "description": "Rescue and organize your Google Photos Takeout export. Handles broken JSON sidecar names, Windows path limits, timestamp corruptions, and duplicate media.",
+  "url": "https://nazimcanislam.github.io/gphotos-fixer/",
+  "downloadUrl": "https://github.com/nazimcanislam/gphotos-fixer",
+  "softwareVersion": "0.3.0",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows, macOS, Linux",
+  "programmingLanguage": "Python",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": {
+    "@type": "Person",
+    "name": "Nazımcan İslam",
+    "url": "https://github.com/nazimcanislam"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0"
+  },
+  "featureList": [
+    "Date-based YYYY/MM folder organization",
+    "Album structure preservation",
+    "Robust JSON matching strategy for truncated filenames",
+    "MD5-based duplicate detection",
+    "3-tier date fallback (JSON -> EXIF -> Filename pattern)",
+    "Dry-run simulation mode",
+    "Flat mode for non-Takeout media folders"
+  ]
+}

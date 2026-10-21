@@ -1,0 +1,47 @@
+<style>
+  .usage-wrapper {
+    background-color: var(--bg-card);
+  }
+</style>
+
+<div class="usage-wrapper" id="usage">
+  <section class="section-wrap usage">
+    <h2 class="section-title">Usage</h2>
+
+    <p class="lead">
+      Requires Python 3.10+. Install Pillow for EXIF support (optional but
+      recommended).
+    </p>
+
+    <div class="code-block">
+      <div># Clone and install</div>
+      <div>
+        <span class="cmd">git clone</span> <span>https://github.com/nazimcanislam/gphotos-fixer.git</span>
+      </div>
+      <div><span class="cmd">cd</span> gphotos-fixer</div>
+      <div>
+        <span class="cmd">pip install</span> <span>Pillow</span>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div># Interactive mode</div>
+      <div><span class="cmd">python</span> -m gphotos_fixer</div>
+      <div># Non-interactive</div>
+      <div>
+        <span class="cmd">python</span> -m gphotos_fixer --input "/path/to/Takeout/Google
+        Photos" --output "/path/to/Photos_Organized"
+      </div>
+      <div># Dry run — no files written</div>
+      <div>
+        <span class="cmd">python</span> -m gphotos_fixer --input ... --output ...
+        --dry-run
+      </div>
+      <div># Flat mode — not a Takeout export, just a photo folder</div>
+      <div>
+        <span class="cmd">python</span> -m gphotos_fixer --input ... --output ...
+        --flat
+      </div>
+    </div>
+  </section>
+</div>

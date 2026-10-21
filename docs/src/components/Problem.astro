@@ -1,0 +1,81 @@
+<style>
+  .problem-wrapper {
+    background-color: var(--bg-card);
+  }
+
+  .problem-real-test-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .test {
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+
+  .test-emoji,
+  .test-number,
+  .test-text {
+    display: block;
+    text-align: center;
+    font-family: var(--mono);
+  }
+
+  .test-emoji {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .test-text {
+    font-size: 1rem;
+    color: var(--fg-muted);
+  }
+
+  .test-number {
+    font-size: 1.25rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+</style>
+
+<div class="problem-wrapper" id="problem">
+  <section class="section-wrap problem">
+    <h2 class="section-title">The Problem</h2>
+
+    <p class="lead">
+      <strong>Google Takeout exports are a mess.</strong> JSON sidecar files get their
+      names truncated at random lengths. Windows MAX_PATH silently breaks <code
+        >glob()</code
+      >. Duplicate photo copies share a single metadata file. Timestamps end up
+      as today's date. Most tools fail silently on these edge cases — or refuse
+      to start at all.
+    </p>
+
+    <div class="problem-real-test-results">
+      <div class="test">
+        <span class="test-emoji">📁 Files</span>
+        <span class="test-number">12,089</span>
+        <span class="test-text">Files in the test export</span>
+      </div>
+
+      <div class="test">
+        <span class="test-emoji">✅ Success Rate</span>
+        <span class="test-number">99.99%</span>
+        <span class="test-text">successfully dated & organized</span>
+      </div>
+
+      <div class="test">
+        <span class="test-emoji">🧩 Methods</span>
+        <span class="test-number">6</span>
+        <span class="test-text">JSON matching strategies</span>
+      </div>
+    </div>
+  </section>
+</div>

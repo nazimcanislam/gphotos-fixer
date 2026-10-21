@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Sitemap lokasyonu
+Sitemap: https://nazimcanislam.github.io/gphotos-fixer/sitemap-index.xml

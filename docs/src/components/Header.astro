@@ -1,0 +1,90 @@
+---
+import { Picture } from "astro:assets";
+import logoImage from "../assets/logo.png";
+---
+
+<style>
+  header {
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    position: -webkit-sticky;
+    left: 0;
+    top: 0;
+    background-color: color-mix(in srgb, var(--bg) 90%, transparent);
+  }
+  
+  nav {
+    padding: 12px 16px;
+    max-width: 1024px;
+    width: 100%;
+    margin-inline: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .navbar-brand,
+  .navbar-brand img {
+    display: block;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .navbar-brand span {
+    font-family: var(--mono);
+    font-size: clamp(0.8125rem, 2.5vw, 1rem);
+    color: var(--fg);
+  }
+
+  .navbar-nav {
+    display: flex;
+    list-style-type: none;
+    gap: 16px;
+    margin: 0;
+  }
+
+  .navbar-nav a {
+    text-decoration: none;
+    color: var(--fg-muted);
+    font-family: var(--mono);
+    font-size: clamp(0.8125rem, 2.5vw, 1rem);
+  }
+
+  .navbar-nav a:hover {
+    color: var(--fg);
+  }
+</style>
+
+<header>
+  <nav>
+    <a href="." class="navbar-brand">
+      <Picture
+        src={logoImage}
+        formats={["avif", "webp"]}
+        alt="Brand Image"
+        width={32}
+        height={32}
+        loading={"eager"}
+      />
+      <span>gphotos<span style="color: var(--accent);">-fixer</span></span>
+    </a>
+
+    <ul class="navbar-nav">
+      <li>
+        <a href="#problem">Problem</a>
+      </li>
+      <li>
+        <a href="#features">Features</a>
+      </li>
+      <li>
+        <a href="#usage">Usage</a>
+      </li>
+    </ul>
+  </nav>
+</header>

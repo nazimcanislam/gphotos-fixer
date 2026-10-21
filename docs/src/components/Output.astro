@@ -1,0 +1,50 @@
+<style>
+  /* ── Output structure ── */
+  .tree {
+    display: flex;
+    flex-direction: column;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--fg-muted);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .tree .hi {
+    color: var(--fg);
+  }
+  .tree .acc {
+    color: var(--accent);
+  }
+</style>
+
+<section class="section-wrap" id="output">
+  <div class="section-title">Output Structure</div>
+
+  <div class="tree">
+    <span class="hi">Photos_Organized/</span>
+    <div>
+      ├── <span class="acc">2022/</span>
+      <span style="opacity: 0.4">← YYYY/MM/</span>
+    </div>
+    <div>│ &nbsp;&nbsp;├── 06/ &nbsp;</div>
+    <div>│ &nbsp;&nbsp;└── 11/</div>
+    <div>├── <span class="acc">2023/</span></div>
+    <div>├── <span class="acc">albums/</span></div>
+    <div>
+      <div>│ &nbsp;&nbsp;├── Cats 🐱/</div>
+      <div>│ &nbsp;&nbsp;└── Summer Trip/</div>
+    </div>
+    <div>
+      ├── unknown_date/
+      <span style="opacity: 0.4">← no recoverable date</span>
+    </div>
+    <div>
+      └── suspicious_date/ &nbsp;<span style="opacity: 0.4"
+        >← future timestamp</span
+      >
+    </div>
+  </div>
+</section>
