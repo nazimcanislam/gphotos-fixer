@@ -7,8 +7,8 @@ import "../styles/base.css";
 const title = "gphotos-fixer — Google Photos Takeout Organizer";
 const description =
   "Rescue your Google Photos Takeout export — handles every broken JSON naming variant Python can find.";
+const baseUrl = `${import.meta.env.SITE}${import.meta.env.BASE_URL}`;
 ---
-
 <!doctype html>
 <html lang="en" style="color-scheme: dark light;">
   <head>
@@ -21,20 +21,20 @@ const description =
     <meta name="generator" content={Astro.generator} />
     <meta name="author" content="Nazımcan İslam" />
     <meta name="description" content={description} />
-    <meta name="canonical" content={Astro.site} />
+    <meta name="canonical" content={baseUrl} />
 
     <!-- OG Tags -->
     <meta property="og:title" content={title} />
     <meta property="og:type" content="website" />
     <meta
       property="og:image"
-      content={`${import.meta.env.BASE_URL}/gphotos-fixer-og-image.jpg`}
+      content={`${baseUrl}/gphotos-fixer-og-image.jpg`}
     />
     <meta
       property="og:image:alt"
       content="Image the definition and the way photos-fixer works"
     />
-    <meta property="og:url" content={Astro.site} />
+    <meta property="og:url" content={baseUrl} />
     <meta property="og:description" content={description} />
     <meta property="og:site_name" content="gphotos-fixer" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -44,31 +44,31 @@ const description =
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href={`${import.meta.env.BASE_URL}/assets/favicon_io/apple-touch-icon.png`}
+      href={`${baseUrl}/assets/favicon_io/apple-touch-icon.png`}
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href={`${import.meta.env.BASE_URL}/assets/favicon_io/favicon-32x32.png`}
+      href={`${baseUrl}/assets/favicon_io/favicon-32x32.png`}
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href={`${import.meta.env.BASE_URL}/assets/favicon_io/favicon-16x16.png`}
+      href={`${baseUrl}/assets/favicon_io/favicon-16x16.png`}
     />
     <link
       rel="icon"
       type="image/png"
       sizes="512x512"
-      href={`${import.meta.env.BASE_URL}/assets/favicon_io/android-chrome-512x512.png`}
+      href={`${baseUrl}/assets/favicon_io/android-chrome-512x512.png`}
     />
     <link
       rel="icon"
       type="image/png"
       sizes="192x192"
-      href={`${import.meta.env.BASE_URL}/assets/favicon_io/android-chrome-192x192.png`}
+      href={`${baseUrl}/assets/favicon_io/android-chrome-192x192.png`}
     />
 
     <!-- Structred Data -->
