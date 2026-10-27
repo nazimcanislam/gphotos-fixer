@@ -41,11 +41,34 @@ Google Takeout dışa aktarmaları bir kaos: tutarsız JSON sidecar isimleri, Wi
 
 ## Kurulum
 
+gphotos-fixer, kurulum dosyası (.exe) olan bir uygulama değil, bir Python scriptidir: alışılmış anlamda "kurulacak" bir şey yoktur. Kodu indirir ve Python ile çalıştırırsınız.
+
 ```bash
 git clone https://github.com/nazimcanislam/gphotos-fixer.git
 cd gphotos-fixer
-pip install Pillow   # opsiyonel ama önerilir
+pip install Pillow
 ```
+
+`Pillow` opsiyonel ama önerilir (EXIF tarih okumayı açar). Windows'ta Git yoksa ya da yukarıdaki komutlar çalışmıyorsa aşağıdaki hızlı başlangıcı kullanın.
+
+### Windows hızlı başlangıç (Git gerekmez)
+
+1. **Python 3.10+ kurun:** [python.org/downloads](https://www.python.org/downloads/) adresinden indirin. Kurulumun ilk ekranında **"Add python.exe to PATH"** kutusunu işaretleyin, sonra *Install Now*'a tıklayın.
+2. **gphotos-fixer'ı indirin:** [GitHub sayfasında](https://github.com/nazimcanislam/gphotos-fixer) **Code → Download ZIP**'e tıklayın, ardından ZIP'e sağ tıklayıp **Tümünü ayıkla…** deyin. `gphotos-fixer-main` adında bir klasör elde edeceksiniz.
+3. **O klasörde terminal açın:** `gphotos-fixer-main` klasörünü Dosya Gezgini'nde açın, adres çubuğuna tıklayıp `cmd` yazın ve Enter'a basın.
+4. **Pillow'u kurun** (opsiyonel ama önerilir):
+   ```
+   python -m pip install Pillow
+   ```
+5. **Aracı interaktif modda çalıştırın:**
+   ```
+   python -m gphotos_fixer
+   ```
+   Araç giriş ve çıkış klasörlerini sorar. Yolları **tırnak işareti olmadan** yapıştırın, ör. `C:\Users\Siz\Downloads\Takeout\Google Fotoğraflar`. İpucu: Shift + sağ tık → *Yol olarak kopyala* tırnak ekler, tırnakları silin.
+
+`python` tanınmıyorsa terminali kapatıp yeniden açın ya da `py -m gphotos_fixer` deneyin. Microsoft Store açılıyorsa Python kurulu değildir veya PATH seçeneği işaretlenmeden kurulmuştur; kurulumu tekrar çalıştırın.
+
+Not: Giriş klasörü, ayıkladığınız Takeout arşivinin **içindeki** `Google Fotoğraflar` klasörü olmalıdır (içinde `2023 yılına ait fotoğraflar` gibi klasörler bulunan); Takeout kök klasörü ya da ZIP dosyası değil.
 
 ---
 
@@ -75,6 +98,12 @@ python -m gphotos_fixer \
   --output "/path/to/Düzenlenmiş_Fotoğraflar" \
   --dry-run
 ```
+
+### Birden fazla Takeout ZIP'i (`takeout-...-001.zip`, `-002.zip`, ...)
+
+Büyük dışa aktarmalar birkaç ZIP dosyasına bölünür. Bunları tek tek işlemeyin. **Hepsini** **aynı hedef klasöre** ayıklayın ki tek bir `Takeout/Google Fotoğraflar` klasöründe birleşsinler (Windows mevcut klasörleri sorarsa *birleştir* / *tümüne evet* seçin), ardından gphotos-fixer'ı bu birleşmiş klasör üzerinde **bir kez** çalıştırın.
+
+Neden: albümler, yıl klasörleri ve JSON metadata dosyaları farklı ZIP'lere dağılmış olabilir ve içinde `Photos from YYYY` klasörü olmayan bir ZIP araç tarafından reddedilir. Önce birleştirmek her fotoğrafı metadata'sının yanında tutar.
 
 ### Düz klasör modu — Takeout dışı bir fotoğraf klasörünü düzeltmek
 

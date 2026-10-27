@@ -42,11 +42,34 @@ Google Takeout exports are a mess: inconsistently named JSON sidecars, truncated
 
 ## Installation
 
+gphotos-fixer is a Python script, not an installer-based app: there is nothing to "install" in the usual sense. You download the code and run it with Python.
+
 ```bash
 git clone https://github.com/nazimcanislam/gphotos-fixer.git
 cd gphotos-fixer
-pip install Pillow   # optional but recommended
+pip install Pillow
 ```
+
+`Pillow` is optional but recommended (it enables EXIF date reading). On Windows, use the quick start below if you don't have Git or the commands above don't work.
+
+### Windows quick start (no Git needed)
+
+1. **Install Python 3.10+** from [python.org/downloads](https://www.python.org/downloads/). On the first screen of the installer, tick **"Add python.exe to PATH"**, then click *Install Now*.
+2. **Download gphotos-fixer:** on the [GitHub page](https://github.com/nazimcanislam/gphotos-fixer), click **Code → Download ZIP**, then right-click the ZIP and choose **Extract All…**. You will get a folder named `gphotos-fixer-main`.
+3. **Open a terminal inside that folder:** open `gphotos-fixer-main` in File Explorer, click the address bar, type `cmd` and press Enter.
+4. **Install Pillow** (optional but recommended):
+   ```
+   python -m pip install Pillow
+   ```
+5. **Run the tool** in interactive mode:
+   ```
+   python -m gphotos_fixer
+   ```
+   It asks for your input and output folders. Paste the paths **without quotation marks**, e.g. `C:\Users\You\Downloads\Takeout\Google Photos`. Tip: Shift + right-click a folder → *Copy as path* adds quotes, so remove them.
+
+If `python` is not recognized, close and reopen the terminal, or try `py -m gphotos_fixer` instead. If it opens the Microsoft Store, Python is not installed or was installed without the PATH option; rerun the installer.
+
+Note: the input folder must be the **`Google Photos`** folder *inside* your extracted Takeout export (the one containing `Photos from 2023`, etc.), not the Takeout root and not a ZIP file.
 
 ---
 
@@ -76,6 +99,12 @@ python -m gphotos_fixer \
   --output "/path/to/Photos_Organized" \
   --dry-run
 ```
+
+### Multiple Takeout ZIPs (`takeout-...-001.zip`, `-002.zip`, ...)
+
+Large exports are split into several ZIP files. Don't process them one by one. Extract **all** of them into the **same destination folder** so they merge into a single `Takeout/Google Photos` folder (choose *merge* / *yes to all* if Windows asks about existing folders), then run gphotos-fixer **once** on that merged `Google Photos` folder.
+
+Why: albums, year folders and their JSON metadata files can be spread across different ZIPs, and a ZIP that contains no `Photos from YYYY` folder is rejected by the tool. Merging first keeps every photo next to its metadata.
 
 ### Flat mode — fixing a plain folder of photos (not a Takeout export)
 
