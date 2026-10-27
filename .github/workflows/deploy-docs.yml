@@ -2,7 +2,11 @@ name: Deploy Astro site to Pages
 
 on:
   push:
-    branches: [ main ] # veya master
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
+      - '!docs/README.md'
 
 permissions:
   contents: read
