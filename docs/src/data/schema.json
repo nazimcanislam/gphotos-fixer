@@ -6,7 +6,7 @@
   "description": "Rescue and organize your Google Photos Takeout export. Handles broken JSON sidecar names, Windows path limits, timestamp corruptions, and duplicate media.",
   "url": "https://nazimcanislam.github.io/gphotos-fixer/",
   "downloadUrl": "https://github.com/nazimcanislam/gphotos-fixer",
-  "softwareVersion": "0.3.0",
+  "softwareVersion": "0.4.0",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Windows, macOS, Linux",
   "programmingLanguage": "Python",

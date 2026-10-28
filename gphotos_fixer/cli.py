@@ -16,7 +16,8 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .organizer import classify_folders, count_media, process_folder, Stats
+from .organizer import classify_folders, scan_media, process_folder, Stats
+from .progress import Progress, fmt_bytes
 from .date_resolver import pillow_available
 
 
@@ -141,6 +142,13 @@ Examples:
         help="Suppress per-file output; only show the summary.",
     )
     parser.add_argument(
+        "--no-progress", action="store_true",
+        help=(
+            "Disable the progress bar / ETA. By default a progress bar is "
+            "shown on stderr, even with --quiet."
+        ),
+    )
+    parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}",
     )
     args = parser.parse_args(argv)
@@ -166,18 +174,34 @@ Examples:
 
     # Scan source
     print("\n🔍 Scanning source folder…")
-    source_count = count_media(input_dir)
-    print(f"   Found {source_count} media file(s).\n")
+    # In Takeout mode a top-level Trash folder is skipped on purpose, so it
+    # must not count towards the totals. --flat processes everything.
+    source_count, source_bytes, trashed = scan_media(input_dir, skip_trash=not args.flat)
+    print(f"   Found {source_count} media file(s) ({fmt_bytes(source_bytes)}).")
+    if trashed:
+        print(f"   Skipped {trashed} file(s) in the Trash folder. To organize them too,")
+        print("   run again with --flat and --input pointing at that Trash folder.")
+    print()
+
+    # Progress goes to stderr and is shown even with --quiet (that's the
+    # whole point: a quiet run on a big export should not look frozen).
+    progress = Progress(
+        source_count, source_bytes,
+        enabled=not args.no_progress,
+        verbose=not args.quiet,
+    )
 
     if args.flat:
         virtual_seen: dict = {} if args.dry_run else None
         print("── Flat mode: organizing purely by resolved EXIF/filename date ──")
-        total = process_folder(
-            input_dir, output_dir,
-            dry_run=args.dry_run,
-            verbose=not args.quiet,
-            virtual_seen=virtual_seen,
-        )
+        with progress:
+            total = process_folder(
+                input_dir, output_dir,
+                dry_run=args.dry_run,
+                verbose=not args.quiet,
+                virtual_seen=virtual_seen,
+                progress=progress,
+            )
         _print_summary(total, source_count, dry_run=args.dry_run)
         return
 
@@ -212,30 +236,33 @@ Examples:
     # different year/album folders.
     virtual_seen: dict = {} if args.dry_run else None
 
-    # Process year folders
-    print(f"── Year folders ({len(year_folders)}) ──────────────────────────────────")
-    for year, folder in sorted(year_folders.items()):
-        print(f"\n📅 {folder.name}")
-        s = process_folder(
-            folder, output_dir,
-            dry_run=args.dry_run,
-            verbose=not args.quiet,
-            virtual_seen=virtual_seen,
-        )
-        total = total + s
+    with progress:
+        # Process year folders
+        print(f"── Year folders ({len(year_folders)}) ──────────────────────────────────")
+        for year, folder in sorted(year_folders.items()):
+            progress.write(f"\n📅 {folder.name}")
+            s = process_folder(
+                folder, output_dir,
+                dry_run=args.dry_run,
+                verbose=not args.quiet,
+                virtual_seen=virtual_seen,
+                progress=progress,
+            )
+            total = total + s
 
-    # Process album folders
-    print(f"\n── Album folders ({len(album_folders)}) ─────────────────────────────────")
-    for folder in album_folders:
-        print(f"\n📁 {folder.name}")
-        s = process_folder(
-            folder, output_dir,
-            album=folder.name,
-            dry_run=args.dry_run,
-            verbose=not args.quiet,
-            virtual_seen=virtual_seen,
-        )
-        total = total + s
+        # Process album folders
+        progress.write(f"\n── Album folders ({len(album_folders)}) ─────────────────────────────────")
+        for folder in album_folders:
+            progress.write(f"\n📁 {folder.name}")
+            s = process_folder(
+                folder, output_dir,
+                album=folder.name,
+                dry_run=args.dry_run,
+                verbose=not args.quiet,
+                virtual_seen=virtual_seen,
+                progress=progress,
+            )
+            total = total + s
 
     _print_summary(total, source_count, dry_run=args.dry_run)
 

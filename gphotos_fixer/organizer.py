@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from . import date_resolver
+from .progress import Progress
 
 # Media file extensions that will be processed.
 MEDIA_EXTENSIONS: frozenset[str] = frozenset({
@@ -86,6 +87,19 @@ def _md5(path: Path, chunk: int = 65536) -> str | None:
         return None
 
 
+def _say(message: str) -> None:
+    """Default logger: same behaviour as the old print(..., flush=True)."""
+    print(message, flush=True)
+
+
+def _file_size(path: Path) -> int:
+    """Size of *path* in bytes, or 0 if it can't be read."""
+    try:
+        return path.stat().st_size
+    except OSError:
+        return 0
+
+
 def _set_mtime(path: Path, dt: datetime) -> None:
     """Set the file's modification time to *dt*."""
     try:
@@ -101,6 +115,7 @@ def _safe_copy(
     dt: datetime | None,
     dry_run: bool,
     virtual_seen: dict[Path, str | None] | None = None,
+    log=_say,
 ) -> str:
     """
     Copy *src* to *dst* and optionally fix the modification timestamp.
@@ -119,7 +134,7 @@ def _safe_copy(
     behaviour of always reporting 'copied'.
 
     If the source file is unreadable (corrupted, locked, permission denied),
-    the function returns 'error' and prints a warning — it never raises.
+    the function returns 'error' and logs a warning — it never raises.
     """
     if dry_run:
         if virtual_seen is None:
@@ -159,7 +174,7 @@ def _safe_copy(
         # If src is unreadable, treat as error; if dst is unreadable, skip the
         # equality check and fall through to rename (safer than silently skipping).
         if src_hash is None:
-            print(f"  ✗ skipped (unreadable): {src.name}", flush=True)
+            log(f"  ✗ skipped (unreadable): {src.name}")
             return "error"
         if src_hash == dst_hash:
             return "skipped"
@@ -171,7 +186,7 @@ def _safe_copy(
         try:
             shutil.copy2(src, dst)
         except (PermissionError, OSError) as e:
-            print(f"  ✗ skipped (unreadable): {src.name} — {e}", flush=True)
+            log(f"  ✗ skipped (unreadable): {src.name} — {e}")
             return "error"
         if dt:
             _set_mtime(dst, dt)
@@ -180,7 +195,7 @@ def _safe_copy(
     try:
         shutil.copy2(src, dst)
     except (PermissionError, OSError) as e:
-        print(f"  ✗ skipped (unreadable): {src.name} — {e}", flush=True)
+        log(f"  ✗ skipped (unreadable): {src.name} — {e}")
         return "error"
     if dt:
         _set_mtime(dst, dt)
@@ -188,14 +203,13 @@ def _safe_copy(
 
 
 def _destination(photo: Path, dst_root: Path, album: str | None,
-                 current_year: int) -> tuple[Path, str]:
+                 current_year: int, dt: datetime | None) -> tuple[Path, str]:
     """
-    Return (destination_path, category) for *photo*.
+    Return (destination_path, category) for *photo*, given its already
+    resolved date *dt* (None if unknown).
 
     category is one of: 'normal', 'no_date', 'suspicious'
     """
-    dt = date_resolver.resolve(photo)
-
     if album is not None:
         return dst_root / "albums" / album / photo.name, "normal"
 
@@ -208,12 +222,37 @@ def _destination(photo: Path, dst_root: Path, album: str | None,
     return dst_root / str(dt.year) / f"{dt.month:02d}" / photo.name, "normal"
 
 
+class Scan(NamedTuple):
+    count:   int   # media files that will actually be processed
+    size:    int   # their total size in bytes
+    trashed: int = 0  # media files left out because they are in a Trash folder
+
+
+def scan_media(folder: Path, *, skip_trash: bool = False) -> Scan:
+    """
+    Count the media files under *folder* recursively, and sum their sizes.
+
+    With *skip_trash*, media inside a top-level Trash folder (the same folders
+    classify_folders() skips) is reported in `.trashed` instead of being
+    counted. The totals then match what a Takeout run really processes;
+    otherwise the summary would claim those files went "missing".
+    """
+    count = total = trashed = 0
+    depth = len(folder.parts)
+    for f in folder.rglob("*"):
+        if f.suffix.lower() not in MEDIA_EXTENSIONS or not f.is_file():
+            continue
+        if skip_trash and f.parts[depth].lower() in _SKIP_FOLDERS:
+            trashed += 1
+            continue
+        count += 1
+        total += _file_size(f)
+    return Scan(count, total, trashed)
+
+
 def count_media(folder: Path) -> int:
     """Count media files under *folder* recursively."""
-    return sum(
-        1 for f in folder.rglob("*")
-        if f.is_file() and f.suffix.lower() in MEDIA_EXTENSIONS
-    )
+    return scan_media(folder).count
 
 
 def classify_folders(
@@ -254,6 +293,7 @@ def process_folder(
     dry_run: bool = False,
     verbose: bool = True,
     virtual_seen: dict[Path, str | None] | None = None,
+    progress: Progress | None = None,
 ) -> Stats:
     """
     Process all media files under *src_folder*.
@@ -268,10 +308,13 @@ def process_folder(
     virtual_seen : shared dict (pass the SAME dict across every call in a
                    dry-run) used to simulate duplicate/conflict detection
                    without touching disk. Ignored when dry_run is False.
+    progress     : optional Progress shared across every call; advanced once
+                   per file (by the file's size) and used for all output.
     """
     current_year = datetime.now().year
     counters = {"copied": 0, "skipped": 0, "renamed": 0,
                 "no_date": 0, "suspicious": 0, "errors": 0}
+    log = progress.write if progress else _say
 
     for photo in src_folder.rglob("*"):
         if not photo.is_file():
@@ -279,10 +322,11 @@ def process_folder(
         if photo.suffix.lower() not in MEDIA_EXTENSIONS:
             continue
 
+        size = _file_size(photo) if progress else 0
         dt = date_resolver.resolve(photo)
-        dst, category = _destination(photo, dst_root, album, current_year)
+        dst, category = _destination(photo, dst_root, album, current_year, dt)
 
-        result = _safe_copy(photo, dst, dt, dry_run, virtual_seen)
+        result = _safe_copy(photo, dst, dt, dry_run, virtual_seen, log)
 
         if category == "no_date":
             counters["no_date"] += 1
@@ -302,6 +346,9 @@ def process_folder(
             # Error lines are already printed inside _safe_copy with full detail;
             # skip reprinting them here to avoid duplication.
             if result != "error":
-                print(f"  {symbol} {photo.name}{tag}", flush=True)
+                log(f"  {symbol} {photo.name}{tag}")
+
+        if progress:
+            progress.advance(size)
 
     return Stats(**counters)

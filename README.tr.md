@@ -124,9 +124,21 @@ python -m gphotos_fixer \
 | `--output DIR` | `-o` | Hedef klasör |
 | `--dry-run` | | Dosya yazmadan simüle et |
 | `--flat` | | `--input`'u Takeout arşivi yerine düz bir fotoğraf klasörü olarak ele al |
-| `--quiet` | `-q` | Sadece özeti göster, dosya bazlı çıktıyı gizle |
+| `--quiet` | `-q` | Sadece özeti göster, dosya bazlı çıktıyı gizle (ilerleme çubuğu yine de gösterilir) |
+| `--no-progress` | | İlerleme çubuğunu ve kalan süre tahminini kapat |
 | `--version` | | Sürümü yazdır ve çık |
 | `--help` | `-h` | Yardımı göster |
+
+### İpuçları
+
+- **Büyük arşivler:** Kopyalama diske bağlıdır. `--input` ve `--output` aynı HDD'deyse
+  okuma ve yazma birbiriyle yarışır, hız kabaca yarıya düşer. Mümkünse `--output` için
+  farklı bir fiziksel disk kullanın. 350 GB'lık bir arşiv HDD'de birkaç saat sürer;
+  ilerleme çubuğu kalan süreyi gösterir.
+- **Çöp kutusu klasörü:** Takeout içindeki `Trash` / `Çöp Kutusu` / `Bin` klasörü bilerek
+  atlanır (çalıştırmanın başında kaç dosya atlandığı yazılır). Bu dosyaları da düzenlemek
+  için aynı `--output` ile, `--flat` kullanarak ve `--input`'u o klasöre vererek tekrar
+  çalıştırın. Çıktıda zaten bulunan dosyalar tekrar olarak tanınır ve atlanır.
 
 ---
 

@@ -125,9 +125,21 @@ python -m gphotos_fixer \
 | `--output DIR` | `-o` | Destination folder |
 | `--dry-run` | | Simulate without writing files |
 | `--flat` | | Treat `--input` as a plain photo folder instead of a Takeout export |
-| `--quiet` | `-q` | Only show the summary, suppress per-file output |
+| `--quiet` | `-q` | Only show the summary, suppress per-file output (the progress bar is still shown) |
+| `--no-progress` | | Disable the progress bar and ETA |
 | `--version` | | Print version and exit |
 | `--help` | `-h` | Show help |
+
+### Tips
+
+- **Large exports:** copying is disk-bound. If `--input` and `--output` are on the
+  same HDD, reading and writing compete and throughput roughly halves, so use a
+  different physical drive for `--output` when you can. A 350 GB export takes
+  a few hours on an HDD; the progress bar shows the remaining time.
+- **Trash folder:** a `Trash` / `Bin` folder inside your Takeout is skipped on
+  purpose (and reported at the start of the run). To organize those files too,
+  run again with `--flat` and `--input` pointing at that folder, using the same
+  `--output`. Files already there are recognised as duplicates and skipped.
 
 ---
 

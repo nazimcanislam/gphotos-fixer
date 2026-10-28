@@ -27,7 +27,24 @@ so we deliberately avoid it here.
 
 import os
 import re
+from bisect import bisect_left
+from functools import lru_cache
 from pathlib import Path
+
+
+@lru_cache(maxsize=16)
+def _index(parent: Path) -> tuple[frozenset[str], list[str]]:
+    """
+    List *parent* once and keep it in memory.
+
+    Returns (all entry names as a set, sorted list of the *.json names).
+    Without this, every single photo triggered a fresh os.listdir() plus
+    several linear scans over it, which is O(n^2) per folder -- a Takeout
+    "Photos from YYYY" folder with tens of thousands of files took hours.
+    The source folder is never modified during a run, so caching is safe.
+    """
+    names = os.listdir(parent)
+    return frozenset(names), sorted(n for n in names if n.lower().endswith(".json"))
 
 
 def find_json(photo_path: Path) -> Path | None:
@@ -48,15 +65,15 @@ def find_json(photo_path: Path) -> Path | None:
     suffix = photo_path.suffix  # e.g. .jpeg
 
     try:
-        entries = os.listdir(parent)
+        entries, json_names = _index(parent)
     except OSError:
         return None
 
     def first_with_prefix(prefix: str) -> Path | None:
-        """Return the first entry whose name starts with *prefix* and ends with .json."""
-        for entry in entries:
-            if entry.lower().endswith(".json") and entry.startswith(prefix):
-                return parent / entry
+        """Return the first .json entry whose name starts with *prefix* (binary search)."""
+        i = bisect_left(json_names, prefix)
+        if i < len(json_names) and json_names[i].startswith(prefix):
+            return parent / json_names[i]
         return None
 
     def exact(name_: str) -> Path | None:
